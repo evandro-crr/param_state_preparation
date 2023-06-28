@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "state-preparation"
+version = "0.1.0"
+description = ""
+authors = ["Evandro Chagas Ribeiro da Rosa <evandro@quantuloop.com>"]
+readme = "README.md"
+packages = [{include = "state_preparation"}]
+
+[tool.poetry.dependencies]
+python = ">3.9.7,<4.0"
+streamlit = "^1.24.0"
+plotly = "^5.15.0"
+pandas = "^2.0.2"
+ket-lang = "^0.6.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
