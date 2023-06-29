@@ -1,4 +1,4 @@
-from math import pi
+from math import asin, sqrt
 from ket import *
 import plotly.express as px
 import streamlit as st
@@ -6,16 +6,20 @@ import streamlit as st
 
 class ParamTree:
     def __init__(self, *params):
-        assert (len(params)+1).bit_count() == 1
+        assert (len(params)).bit_count() == 1
 
-        self.value = params[0]
-        params = params[1:]
+        total = sum(params)
+        if total != 0:
+            params = [p/total for p in params]
 
-        if len(params) > 1:
-            left_list = params[:len(params)//2]
-            right_list = params[len(params)//2:]
-            self.left = ParamTree(*left_list)
-            self.right = ParamTree(*right_list)
+        left_params = params[:len(params)//2]
+        right_params = params[len(params)//2:]
+
+        self.value = 2*asin(sqrt(sum(right_params)))
+
+        if len(params) > 2:
+            self.left = ParamTree(*left_params)
+            self.right = ParamTree(*right_params)
         else:
             self.left = None
             self.right = None
@@ -27,37 +31,37 @@ class ParamTree:
         return f'{self.value} {self.left} {self.right}' if not self.is_leaf() else f'{self.value}'
 
 
-def preparer(q: quant, params: ParamTree):
+def prepare(q: quant, params: ParamTree):
     head, tail = q[0], q[1:]
 
-    RX(params.value, head)
+    RY(params.value, head)
 
     if params.is_leaf():
         return
     with control(head, on_state=0):
-        preparer(tail, params.left)
+        prepare(tail, params.left)
     with control(head):
-        preparer(tail, params.right)
+        prepare(tail, params.right)
 
 
 st.sidebar.write("# Number of Qubits")
 
 num_qubits = st.sidebar.slider("Number of qubits", 1, 10, 3)
 
-st.sidebar.write("# Parameters")
+st.sidebar.write("# Quantum State")
 
 parameters = [st.sidebar.slider(
-    f"Parameter {i}", 0.0, pi, pi/2) for i in range((1 << num_qubits)-1)]
+    f"|{i:0{num_qubits}b}⟩", 0, 100, 50) for i in range((1 << num_qubits))]
 
 q = quant(num_qubits)
 params = ParamTree(*parameters)
 
-preparer(q, params)
+prepare(q, params)
 
 d = dump(q)
 
 df = {
-    'State': [f'|{s:0{num_qubits}b}>' for s in d.states],
+    'State': [f'|{s:0{num_qubits}b}⟩' for s in d.states],
     'Probability': d.probabilities,
 }
 
