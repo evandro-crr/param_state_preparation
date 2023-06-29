@@ -94,8 +94,6 @@ for instruction in quantum_code_last()[0]['instructions']:
             name = '\sigma_x'
         qc.add_gate(name, targets=gate['target'], controls=gate['control'])
 
-        print(instruction)
-
 
 st.image(qc.png)
 
