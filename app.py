@@ -2,6 +2,14 @@ from math import asin, sqrt
 from ket import *
 import plotly.express as px
 import streamlit as st
+from qutip.qip.circuit import QubitCircuit
+
+st.set_page_config(
+    page_title="Arbitrary Quantum State Preparation",
+    page_icon="https://quantumket.org/_static/ket.svg",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 
 class ParamTree:
@@ -53,6 +61,11 @@ st.sidebar.write("# Quantum State")
 parameters = [st.sidebar.slider(
     f"|{i:0{num_qubits}b}⟩", 0, 100, 50) for i in range((1 << num_qubits))]
 
+
+"# Arbitrary Quantum State Preparation"
+
+":arrow_left: Open the sidebar to change the number of qubits and the states probability."
+
 q = quant(num_qubits)
 params = ParamTree(*parameters)
 
@@ -69,3 +82,24 @@ fig = px.bar(df, x='State', y='Probability')
 fig.update_layout(yaxis_range=[0, 1])
 
 st.plotly_chart(fig, use_container_width=True)
+
+qc = QubitCircuit(num_qubits)
+
+for instruction in quantum_code_last()[0]['instructions']:
+    if 'Gate' in instruction:
+        gate = instruction['Gate']
+        if isinstance(gate['gate'], dict):
+            name = f'Ry({gate["gate"]["RY"]:.2f})'
+        else:
+            name = '\sigma_x'
+        qc.add_gate(name, targets=gate['target'], controls=gate['control'])
+
+        print(instruction)
+
+
+st.image(qc.png)
+
+"---"
+
+"Made with"
+"[![ket](https://quantumket.org/_static/ket.svg)](https://quantumket.org)"
