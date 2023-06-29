@@ -2,7 +2,8 @@ from math import asin, sqrt
 from ket import *
 import plotly.express as px
 import streamlit as st
-from qutip.qip.circuit import QubitCircuit
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import RYGate, XGate
 
 st.set_page_config(
     page_title="Arbitrary Quantum State Preparation",
@@ -83,19 +84,24 @@ fig.update_layout(yaxis_range=[0, 1])
 
 st.plotly_chart(fig, use_container_width=True)
 
-qc = QubitCircuit(num_qubits)
+qc = QuantumCircuit(num_qubits)
 
 for instruction in quantum_code_last()[0]['instructions']:
     if 'Gate' in instruction:
         gate = instruction['Gate']
+        target = gate['target']
+        controls = gate['control']
         if isinstance(gate['gate'], dict):
-            name = f'Ry({gate["gate"]["RY"]:.2f})'
+            gate = RYGate(gate["gate"]["RY"])
         else:
-            name = '\sigma_x'
-        qc.add_gate(name, targets=gate['target'], controls=gate['control'])
+            gate = XGate()
 
+        if len(controls) != 0:
+            gate = gate.control(len(controls))
 
-st.image(qc.png)
+        qc.append(gate, [*controls, target])
+
+st.pyplot(qc.draw(output='mpl', style={"backgroundcolor": "#F4F8FF"}))
 
 "---"
 
