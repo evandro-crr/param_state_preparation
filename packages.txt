@@ -1,3 +1,4 @@
 texlive
 texlive-pictures
 texlive-latex-extra
+imagemagick
